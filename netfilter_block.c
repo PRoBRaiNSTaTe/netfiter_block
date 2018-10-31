@@ -92,7 +92,6 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 
 	return id;
 }
-	
 
 static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 	      struct nfq_data *nfa, void *data)
@@ -119,22 +118,18 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 		  u_int16_t tcp_payload_len=tcp_len-tcp_hdr_len;
 		  u_int8_t *tcp_payload=(u_int8_t *)(packet+ip_hdr_len+tcp_hdr_len);
 
-			if(tcp_payload_len == 0)
-			  printf("No TCP Data\n");
-		else 
+		if(memcmp(tcp_payload,*str,str_size[0])==0||memcmp(tcp_payload,*(str+1),str_size[1])==0||memcmp(tcp_payload,*(str+2),str_size[2])==0||memcmp(tcp_payload,*(str+3),str_size[3])==0||memcmp(tcp_payload,*(str+4),str_size[4])==0||memcmp(tcp_payload,*(str+5),str_size[5])==0)
 		{
-			if(memcmp(tcp_payload,*str,str_size[0])==0||memcmp(tcp_payload,*(str+1),str_size[1])==0||memcmp(tcp_payload,*(str+2),str_size[2])==0||memcmp(tcp_payload,*(str+3),str_size[3])==0||memcmp(tcp_payload,*(str+4),str_size[4])==0||memcmp(tcp_payload,*(str+5),str_size[5])==0)
-			{
-				char *host;
-				char *tmp=strstr(tcp_payload,"Host: ");
-				tmp+=6;
-				host=strtok(tmp, "\r");
-				if(strncmp(blockedhost, host, strlen(blockedhost))!=0)
-				  return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
+			char *host;
+			char *tmp=strstr(tcp_payload,"Host: ");
+
+			tmp+=6;
+			host=strtok(tmp, "\r");
+			if(strncmp(blockedhost, host, strlen(blockedhost))!=0)
+			  return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
   
-				printf("%s Blocking\n",blockedhost);
-				return nfq_set_verdict(qh, id, NF_DROP, 0, NULL);
-			}
+			printf("%s Blocking\n",blockedhost);
+			return nfq_set_verdict(qh, id, NF_DROP, 0, NULL);
 		}
 	}
 }
